@@ -20,6 +20,8 @@ Session = sessionmaker(bind=engine)
 
 
 def update_tweet_info(session, tw):
+    update_user_info(session, tw.user)
+
     tw_db = session.query(models.Tweet)\
         .options(load_only("id"))\
         .filter_by(id=tw.id)\
@@ -68,7 +70,7 @@ def update_tweet_info(session, tw):
     if hasattr(tw, 'withheld_copyright'):
         tw_db.withheld_copyright = tw.withheld_copyright
     else:
-        tw_db.withheld_copyright = False
+        tw_db.withheld_copyright = None
     if hasattr(tw, 'withheld_in_countries'):
         tw_db.withheld_in_countries = tw.withheld_in_countries
     else:
@@ -77,13 +79,85 @@ def update_tweet_info(session, tw):
         tw_db.withheld_scope = tw.withheld_scope
     else:
         tw_db.withheld_scope = None
+    session.commit()
+
+
+def update_user_info(session, u):
+    if hasattr(u, 'status') and u.status is not None:
+        update_tweet_info(session, u.status)
+
+    u_db = session.query(models.User)\
+        .options(load_only("id"))\
+        .filter_by(id=u.id)\
+        .one_or_none()
+    if u_db is None:
+        u_db = models.User(id=u.id)
+        session.add(u_db)
+    u_db.created_at = u.created_at
+    u_db.default_profile = u.default_profile
+    u_db.default_profile_image = u.default_profile_image
+    u_db.description = u.description
+    # TODO: u.entities
+    u_db.entities = "{}"
+    u_db.favourites_count = u.favourites_count
+    u_db.follow_request_sent = u.follow_request_sent
+    u_db.followers_count = u.followers_count
+    u_db.friends_count = u.friends_count
+    u_db.geo_enabled = u.geo_enabled
+    u_db.is_translator = u.is_translator
+    u_db.lang = u.lang
+    u_db.listed_count = u.listed_count
+    u_db.location = u.location
+    u_db.name = u.name
+    u_db.profile_background_color = u.profile_background_color
+    u_db.profile_background_image_url = u.profile_background_image_url
+    u_db.profile_background_image_url_https = \
+        u.profile_background_image_url_https
+    u_db.profile_background_tile = u.profile_background_tile
+    u_db.profile_banner_url = u.profile_banner_url
+    u_db.profile_image_url = u.profile_image_url
+    u_db.profile_image_url_https = u.profile_image_url_https
+    u_db.profile_link_color = u.profile_link_color
+    u_db.profile_sidebar_border_color = u.profile_sidebar_border_color
+    u_db.profile_sidebar_fill_color = u.profile_sidebar_fill_color
+    u_db.profile_text_color = u.profile_text_color
+    u_db.profile_use_background_image = u.profile_use_background_image
+    u_db.protected = u.protected
+    u_db.screen_name = u.screen_name
+    u_db.show_all_inline_media = getattr(u, 'show_all_inline_media', None)
+    if hasattr(u, 'status') and u.status is not None:
+        u_db.status_id = u.status.id
+    else:
+        u_db.status_id = None
+    u_db.statuses_count = u.statuses_count
+    u_db.time_zone = u.time_zone
+    u_db.url = u.url
+    u_db.utc_offset = u.utc_offset
+    u_db.verified = u.verified
+    u_db.withheld_in_countries = getattr(u, 'withheld_in_countries', None)
+    u_db.withheld_scope = getattr(u, 'withheld_scope', None)
+    session.commit()
 
 
 def main():
     session = Session()
-    tw = api.get_status(817645036309356544)
-    update_tweet_info(session, tw)
-    session.commit()
+    for status_id in [
+            817645036309356544,
+            817666240042803201,
+            817667861032243200,
+            817673828721565696,
+            817369529974079488,
+            817674606555242496,
+            817664008584990720,
+            817524535960313856,
+            817524185597550593,
+            817523673665941505,
+            817551496266977280,
+            817560519003357184,
+            817671363578056704,
+            815572784747159552]:
+        tw = api.get_status(817645036309356544)
+        update_tweet_info(session, tw)
     return 0
 
 
