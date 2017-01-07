@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import json
 import tweepy
 from sqlalchemy import create_engine
 from sqlalchemy.orm import load_only, sessionmaker
@@ -21,6 +22,13 @@ Session = sessionmaker(bind=engine)
 
 def update_tweet_info(session, tw):
     update_user_info(session, tw.user)
+    if hasattr(tw, 'quoted_status'):
+        quoted_status = tw.quoted_status
+        if type(quoted_status) == dict:
+            quoted_status = tweepy.Status.parse(api, quoted_status)
+        update_tweet_info(session, quoted_status)
+    if hasattr(tw, 'retweeted_status'):
+        update_tweet_info(session, tw.retweeted_status)
 
     tw_db = session.query(models.Tweet)\
         .options(load_only("id"))\
@@ -29,18 +37,18 @@ def update_tweet_info(session, tw):
     if tw_db is None:
         tw_db = models.Tweet(id=tw.id)
         session.add(tw_db)
-    # TODO: tw.coordinates
-    # # coordinates = Column(String(256))
-    # tw_db.coordinates = tw.coordinates
+    if tw.coordinates is not None:
+        tw_db.coordinates_longitude = tw.coordinates['coordinates'][0]
+        tw_db.coordinates_latitude = tw.coordinates['coordinates'][1]
+    else:
+        tw_db.coordinates_longitude = None
+        tw_db.coordinates_latitude = None
     tw_db.created_at = tw.created_at
     if hasattr(tw, 'current_user_retweet'):
         tw_db.current_user_retweet = tw.current_user_retweet['id']
     else:
         tw_db.current_user_retweet = None
-    # TODO: tw.entities
-    # # entities = Column(String(1024))
-    tw_db.entities = "{}"
-    # tw_db.entities = tw.entities
+    tw_db.entities = json.dumps(tw.entities)
     tw_db.favorite_count = tw.favorite_count
     tw_db.favorited = tw.favorited
     tw_db.filter_level = getattr(tw, 'filter_level', None)
@@ -51,13 +59,13 @@ def update_tweet_info(session, tw):
     # TODO: tw.place
     # tw_db.place_id = tw.place['id']
     tw_db.possibly_sensitive = getattr(tw, 'possibly_sensitive', None)
-    # TODO: tw.quoted_status
     tw_db.quoted_status_id = getattr(tw, 'quoted_status_id', None)
-    # # scopes = Column(String(1024))
-    # tw_db.scopes = getattr(tw, 'scopes', None)
+    if hasattr(tw, 'scopes'):
+        tw_db.scopes = json.dumps(tw.scopes)
+    else:
+        tw_db.scopes = None
     tw_db.retweet_count = tw.retweet_count
     tw_db.retweeted = tw.retweeted
-    # TODO: tw.retweeted_status_id
     if hasattr(tw, 'retweeted_status'):
         tw_db.retweeted_status_id = tw.retweeted_status.id
     else:
@@ -97,8 +105,7 @@ def update_user_info(session, u):
     u_db.default_profile = u.default_profile
     u_db.default_profile_image = u.default_profile_image
     u_db.description = u.description
-    # TODO: u.entities
-    u_db.entities = "{}"
+    u_db.entities = json.dumps(u.entities)
     u_db.favourites_count = u.favourites_count
     u_db.follow_request_sent = u.follow_request_sent
     u_db.followers_count = u.followers_count
@@ -114,7 +121,7 @@ def update_user_info(session, u):
     u_db.profile_background_image_url_https = \
         u.profile_background_image_url_https
     u_db.profile_background_tile = u.profile_background_tile
-    u_db.profile_banner_url = u.profile_banner_url
+    u_db.profile_banner_url = getattr(u, 'profile_banner_url', None)
     u_db.profile_image_url = u.profile_image_url
     u_db.profile_image_url_https = u.profile_image_url_https
     u_db.profile_link_color = u.profile_link_color
@@ -155,8 +162,11 @@ def main():
             817551496266977280,
             817560519003357184,
             817671363578056704,
-            815572784747159552]:
-        tw = api.get_status(817645036309356544)
+            815572784747159552,
+            817467641128361985,
+            786533768840433664,
+            ]:
+        tw = api.get_status(status_id)
         update_tweet_info(session, tw)
     return 0
 

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from sqlalchemy import Column, Integer, BigInteger, String, DateTime, Boolean
+from sqlalchemy import Float
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -12,7 +13,8 @@ class Tweet(Base):
     __tablename__ = 'tweets'
 
     id = Column(BigInteger, primary_key=True, autoincrement=False)
-    coordinates = Column(String(256))
+    coordinates_longitude = Column(Float)
+    coordinates_latitude = Column(Float)
     created_at = Column(DateTime, nullable=False)
     # Note: this is perspectival (i.e. it depends on the api user)
     current_user_retweet = Column(BigInteger)
@@ -67,10 +69,10 @@ class User(Base):
     location = Column(String(256))
     name = Column(String(256), nullable=False)
     profile_background_color = Column(String(20), nullable=False)
-    profile_background_image_url = Column(String(1024), nullable=False)
-    profile_background_image_url_https = Column(String(1024), nullable=False)
+    profile_background_image_url = Column(String(1024))
+    profile_background_image_url_https = Column(String(1024))
     profile_background_tile = Column(Boolean, nullable=False)
-    profile_banner_url = Column(String(1024), nullable=False)
+    profile_banner_url = Column(String(1024))
     profile_image_url = Column(String(1024), nullable=False)
     profile_image_url_https = Column(String(1024), nullable=False)
     profile_link_color = Column(String(20), nullable=False)
