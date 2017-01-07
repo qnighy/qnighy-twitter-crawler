@@ -20,6 +20,13 @@ models.Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 
 
+def int_or_None(s):
+    if s is None:
+        return None
+    else:
+        return int(s)
+
+
 def update_tweet_info(session, tw):
     update_user_info(session, tw.user)
     if hasattr(tw, 'quoted_status'):
@@ -45,7 +52,8 @@ def update_tweet_info(session, tw):
         tw_db.coordinates_latitude = None
     tw_db.created_at = tw.created_at
     if hasattr(tw, 'current_user_retweet'):
-        tw_db.current_user_retweet = tw.current_user_retweet['id']
+        tw_db.current_user_retweet = \
+            int_or_None(tw.current_user_retweet['id_str'])
     else:
         tw_db.current_user_retweet = None
     tw_db.entities = json.dumps(tw.entities)
@@ -57,13 +65,14 @@ def update_tweet_info(session, tw):
     tw_db.favorited = tw.favorited
     tw_db.filter_level = getattr(tw, 'filter_level', None)
     tw_db.in_reply_to_screen_name = tw.in_reply_to_screen_name
-    tw_db.in_reply_to_status_id = tw.in_reply_to_status_id
-    tw_db.in_reply_to_user_id = tw.in_reply_to_user_id
+    tw_db.in_reply_to_status_id = int_or_None(tw.in_reply_to_status_id_str)
+    tw_db.in_reply_to_user_id = int_or_None(tw.in_reply_to_user_id_str)
     tw_db.lang = tw.lang
     # TODO: tw.place
     # tw_db.place_id = tw.place['id']
     tw_db.possibly_sensitive = getattr(tw, 'possibly_sensitive', None)
-    tw_db.quoted_status_id = getattr(tw, 'quoted_status_id', None)
+    tw_db.quoted_status_id = \
+        int_or_None(getattr(tw, 'quoted_status_id_str', None))
     if hasattr(tw, 'scopes'):
         tw_db.scopes = json.dumps(tw.scopes)
     else:
@@ -71,14 +80,14 @@ def update_tweet_info(session, tw):
     tw_db.retweet_count = tw.retweet_count
     tw_db.retweeted = tw.retweeted
     if hasattr(tw, 'retweeted_status'):
-        tw_db.retweeted_status_id = tw.retweeted_status.id
+        tw_db.retweeted_status_id = int_or_None(tw.retweeted_status.id_str)
     else:
         tw_db.retweeted_status_id = None
     tw_db.source = tw.source
     tw_db.source_url = tw.source_url
     tw_db.text = tw.text
     tw_db.truncated = tw.truncated
-    tw_db.user_id = tw.user.id
+    tw_db.user_id = int_or_None(tw.user.id_str)
     if hasattr(tw, 'withheld_copyright'):
         tw_db.withheld_copyright = tw.withheld_copyright
     else:
@@ -137,7 +146,7 @@ def update_user_info(session, u):
     u_db.screen_name = u.screen_name
     u_db.show_all_inline_media = getattr(u, 'show_all_inline_media', None)
     if hasattr(u, 'status') and u.status is not None:
-        u_db.status_id = u.status.id
+        u_db.status_id = int_or_None(u.status.id_str)
     else:
         u_db.status_id = None
     u_db.statuses_count = u.statuses_count
