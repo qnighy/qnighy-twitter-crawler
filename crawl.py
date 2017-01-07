@@ -49,6 +49,10 @@ def update_tweet_info(session, tw):
     else:
         tw_db.current_user_retweet = None
     tw_db.entities = json.dumps(tw.entities)
+    if hasattr(tw, 'extended_entities'):
+        tw_db.extended_entities = json.dumps(tw.extended_entities)
+    else:
+        tw_db.extended_entities = None
     tw_db.favorite_count = tw.favorite_count
     tw_db.favorited = tw.favorited
     tw_db.filter_level = getattr(tw, 'filter_level', None)

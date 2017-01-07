@@ -18,8 +18,8 @@ class Tweet(Base):
     created_at = Column(DateTime, nullable=False)
     # Note: this is perspectival (i.e. it depends on the api user)
     current_user_retweet = Column(BigInteger)
-    # TODO: entities
-    entities = Column(String(1024), nullable=False)
+    entities = Column(String(4096), nullable=False)
+    extended_entities = Column(String(8192))
     favorite_count = Column(Integer)
     # Note: this is perspectival (i.e. it depends on the api user)
     favorited = Column(Boolean)
