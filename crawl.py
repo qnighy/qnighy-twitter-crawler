@@ -50,11 +50,6 @@ def update_tweet_info(session, tw):
             int_or_None(tw.current_user_retweet['id_str'])
     else:
         tw_db.current_user_retweet = None
-    tw_db.entities = json.dumps(tw.entities)
-    if hasattr(tw, 'extended_entities') and tw.extended_entities is not None:
-        tw_db.extended_entities = json.dumps(tw.extended_entities)
-    else:
-        tw_db.extended_entities = None
     tw_db.favorite_count = tw.favorite_count
     tw_db.favorited = tw.favorited
     tw_db.filter_level = getattr(tw, 'filter_level', None)
@@ -101,6 +96,82 @@ def update_tweet_info(session, tw):
     if not hasattr(tw, 'retweeted_status'):
         for m in entities.get('media', []):
             update_media_info(session, tw, m)
+        for ht in entities.get('hashtags', []):
+            tweet_id = int(tw.id_str)
+            indices_begin = ht['indices'][0]
+            indices_end = ht['indices'][1]
+            ht_db = session.query(models.TweetHashtag)\
+                .options(load_only("tweet_id", "indices_begin",
+                                   "indices_end"))\
+                .filter_by(tweet_id=tweet_id,
+                           indices_begin=indices_begin,
+                           indices_end=indices_end)\
+                .one_or_none()
+            if ht_db is None:
+                ht_db = models.TweetHashtag(tweet_id=int(tw.id_str),
+                                            indices_begin=indices_begin,
+                                            indices_end=indices_end)
+                session.add(ht_db)
+            ht_db.text = ht['text']
+            session.commit()
+        for url in entities.get('urls', []):
+            tweet_id = int(tw.id_str)
+            indices_begin = url['indices'][0]
+            indices_end = url['indices'][1]
+            url_db = session.query(models.TweetUrl)\
+                .options(load_only("tweet_id", "indices_begin",
+                                   "indices_end"))\
+                .filter_by(tweet_id=tweet_id,
+                           indices_begin=indices_begin,
+                           indices_end=indices_end)\
+                .one_or_none()
+            if url_db is None:
+                url_db = models.TweetUrl(tweet_id=int(tw.id_str),
+                                         indices_begin=indices_begin,
+                                         indices_end=indices_end)
+                session.add(url_db)
+            url_db.url = url['url']
+            url_db.display_url = url['display_url']
+            url_db.expanded_url = url['expanded_url']
+            session.commit()
+        for sym in entities.get('symbols', []):
+            tweet_id = int(tw.id_str)
+            indices_begin = sym['indices'][0]
+            indices_end = sym['indices'][1]
+            sym_db = session.query(models.TweetSymbol)\
+                .options(load_only("tweet_id", "indices_begin",
+                                   "indices_end"))\
+                .filter_by(tweet_id=tweet_id,
+                           indices_begin=indices_begin,
+                           indices_end=indices_end)\
+                .one_or_none()
+            if sym_db is None:
+                sym_db = models.TweetSymbol(tweet_id=int(tw.id_str),
+                                            indices_begin=indices_begin,
+                                            indices_end=indices_end)
+                session.add(sym_db)
+            sym_db.text = sym['text']
+            session.commit()
+        for um in entities.get('user_mentions', []):
+            tweet_id = int(tw.id_str)
+            indices_begin = um['indices'][0]
+            indices_end = um['indices'][1]
+            um_db = session.query(models.TweetUserMention)\
+                .options(load_only("tweet_id", "indices_begin",
+                                   "indices_end"))\
+                .filter_by(tweet_id=tweet_id,
+                           indices_begin=indices_begin,
+                           indices_end=indices_end)\
+                .one_or_none()
+            if um_db is None:
+                um_db = models.TweetUserMention(tweet_id=int(tw.id_str),
+                                                indices_begin=indices_begin,
+                                                indices_end=indices_end)
+                session.add(um_db)
+            um_db.user_id = int(um['id_str'])
+            um_db.screen_name = um['screen_name']
+            um_db.name = um['name']
+            session.commit()
 
 
 def update_user_info(session, u):
@@ -188,6 +259,7 @@ def update_media_info(session, tw, m):
 def main():
     session = Session()
     for status_id in [
+            817936565754134529,
             817722261033533440,
             817358571079749632,
             816828592449404928,

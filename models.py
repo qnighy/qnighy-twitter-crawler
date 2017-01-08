@@ -19,8 +19,19 @@ class Tweet(Base):
     created_at = Column(DateTime, nullable=False)
     # Note: this is perspectival (i.e. it depends on the api user)
     current_user_retweet = Column(BigInteger)
-    entities = Column(Text, nullable=False)
-    extended_entities = Column(Text)
+    hashtags = relationship('TweetHashtag',
+                            primaryjoin='Tweet.id == TweetHashtag.tweet_id',
+                            back_populates='tweet')
+    urls = relationship('TweetUrl',
+                        primaryjoin='Tweet.id == TweetUrl.tweet_id',
+                        back_populates='tweet')
+    symbols = relationship('TweetSymbol',
+                           primaryjoin='Tweet.id == TweetSymbol.tweet_id',
+                           back_populates='tweet')
+    user_mentions = relationship(
+        'TweetUserMention',
+        primaryjoin='Tweet.id == TweetUserMention.tweet_id',
+        back_populates='tweet')
     favorite_count = Column(Integer)
     # Note: this is perspectival (i.e. it depends on the api user)
     favorited = Column(Boolean)
@@ -116,3 +127,55 @@ class Media(Base):
 
     locally_available = Column(Boolean, nullable=False, default=False,
                                index=True)
+
+
+class TweetHashtag(Base):
+    __tablename__ = 'tweet_hashtags'
+
+    tweet_id = Column(BigInteger, ForeignKey(Tweet.id), primary_key=True)
+    indices_begin = Column(Integer, primary_key=True)
+    indices_end = Column(Integer, primary_key=True)
+    tweet = relationship(Tweet,
+                         primaryjoin='Tweet.id == TweetHashtag.tweet_id',
+                         back_populates='hashtags')
+    text = Column(Unicode(1024), nullable=False)
+
+
+class TweetUrl(Base):
+    __tablename__ = 'tweet_urls'
+
+    tweet_id = Column(BigInteger, ForeignKey(Tweet.id), primary_key=True)
+    indices_begin = Column(Integer, primary_key=True)
+    indices_end = Column(Integer, primary_key=True)
+    tweet = relationship(Tweet,
+                         primaryjoin='Tweet.id == TweetUrl.tweet_id',
+                         back_populates='urls')
+    url = Column(Text, nullable=False)
+    display_url = Column(Text, nullable=False)
+    expanded_url = Column(Text, nullable=False)
+
+
+class TweetSymbol(Base):
+    __tablename__ = 'tweet_symbols'
+
+    tweet_id = Column(BigInteger, ForeignKey(Tweet.id), primary_key=True)
+    indices_begin = Column(Integer, primary_key=True)
+    indices_end = Column(Integer, primary_key=True)
+    tweet = relationship(Tweet,
+                         primaryjoin='Tweet.id == TweetSymbol.tweet_id',
+                         back_populates='symbols')
+    text = Column(String(20), nullable=False)
+
+
+class TweetUserMention(Base):
+    __tablename__ = 'tweet_user_mentions'
+
+    tweet_id = Column(BigInteger, ForeignKey(Tweet.id), primary_key=True)
+    indices_begin = Column(Integer, primary_key=True)
+    indices_end = Column(Integer, primary_key=True)
+    tweet = relationship(Tweet,
+                         primaryjoin='Tweet.id == TweetUserMention.tweet_id',
+                         back_populates='user_mentions')
+    user_id = Column(BigInteger, nullable=False)
+    screen_name = Column(String(40), nullable=False)
+    name = Column(Unicode(256), nullable=False)
