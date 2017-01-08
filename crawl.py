@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from contextlib import closing
 import json
+import requests
 import tweepy
 from sqlalchemy.orm import load_only
 import models
@@ -14,6 +16,18 @@ def int_or_None(s):
         return None
     else:
         return int(s)
+
+
+def download_media(rsession, media_url, local_media_file):
+    import os
+    os.makedirs('media')
+    filename = os.path.join('media', local_media_file)
+    with closing(rsession.get(media_url, stream=True))\
+            as r:
+        r.raise_for_status()
+        with open(filename, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=128):
+                f.write(chunk)
 
 
 def update_tweet_info(session, tw):
@@ -259,6 +273,7 @@ def update_media_info(session, tw, m):
 def main():
     session = Session()
     for status_id in [
+            817887757091500033,
             817936565754134529,
             817722261033533440,
             817358571079749632,
@@ -281,6 +296,21 @@ def main():
             ]:
         tw = api.get_status(status_id)
         update_tweet_info(session, tw)
+
+    with requests.Session() as rsession:
+        while True:
+            media = session.query(models.Media)\
+                .options(load_only('media_url_https', 'video_info'))\
+                .filter_by(locally_available=False)\
+                .limit(50)\
+                .all()
+            if len(media) == 0:
+                break
+            for m in media:
+                download_media(rsession, m.media_url_https + ':orig',
+                               m.local_media_name)
+                m.locally_available = True
+                session.commit()
     return 0
 
 

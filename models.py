@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import json
 from sqlalchemy import Column, Integer, BigInteger, String, DateTime, Boolean
 from sqlalchemy import Float, Text, Unicode, ForeignKey
 from sqlalchemy.orm import relationship
@@ -127,6 +128,12 @@ class Media(Base):
 
     locally_available = Column(Boolean, nullable=False, default=False,
                                index=True)
+
+    @property
+    def local_media_name(self):
+        import os
+        return 'media' + \
+            str(self.id) + os.path.splitext(self.media_url_https)[1]
 
 
 class TweetHashtag(Base):
