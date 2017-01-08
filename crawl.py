@@ -46,7 +46,7 @@ def update_tweet_info(session, tw):
     else:
         tw_db.current_user_retweet = None
     tw_db.entities = json.dumps(tw.entities)
-    if hasattr(tw, 'extended_entities'):
+    if hasattr(tw, 'extended_entities') and tw.extended_entities is not None:
         tw_db.extended_entities = json.dumps(tw.extended_entities)
     else:
         tw_db.extended_entities = None
@@ -57,14 +57,14 @@ def update_tweet_info(session, tw):
     tw_db.in_reply_to_status_id = int_or_None(tw.in_reply_to_status_id_str)
     tw_db.in_reply_to_user_id = int_or_None(tw.in_reply_to_user_id_str)
     tw_db.lang = tw.lang
-    if hasattr(tw, 'place'):
+    if hasattr(tw, 'place') and tw.place is not None:
         tw_db.place = json.dumps(tw.place)
     else:
         tw_db.place = None
     tw_db.possibly_sensitive = getattr(tw, 'possibly_sensitive', None)
     tw_db.quoted_status_id = \
         int_or_None(getattr(tw, 'quoted_status_id_str', None))
-    if hasattr(tw, 'scopes'):
+    if hasattr(tw, 'scopes') and tw.scopes is not None:
         tw_db.scopes = json.dumps(tw.scopes)
     else:
         tw_db.scopes = None
