@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import json
 from sqlalchemy import Column, Integer, BigInteger, String, DateTime, Boolean
-from sqlalchemy import Float, Text, Unicode
+from sqlalchemy import Float, Text, Unicode, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -46,16 +46,8 @@ class Tweet(Base):
     withheld_in_countries = Column(Text)
     withheld_scope = Column(String(40))
 
-    @property
-    def media(self):
-        if self.extended_entities is not None:
-            extended_entities = json.loads(self.extended_entities)
-            if 'media' in extended_entities:
-                return extended_entities['media']
-        entities = json.loads(self.entities)
-        if 'media' in entities:
-            return entities['media']
-        return []
+    media = relationship('Media', primaryjoin='Tweet.id == Media.tweet_id',
+                         back_populates='tweet')
 
 
 class User(Base):
@@ -108,6 +100,9 @@ class Media(Base):
     __tablename__ = 'media'
 
     id = Column(BigInteger, primary_key=True, autoincrement=False)
+    tweet_id = Column(BigInteger, ForeignKey(Tweet.id), nullable=False)
+    tweet = relationship(Tweet, primaryjoin='Tweet.id == Media.tweet_id',
+                         back_populates="media")
     media_url = Column(Text, nullable=False)
     media_url_https = Column(Text, nullable=False)
     url = Column(Text, nullable=False)

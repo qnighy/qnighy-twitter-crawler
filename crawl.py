@@ -31,15 +31,12 @@ def update_tweet_info(session, tw):
     if hasattr(tw, 'retweeted_status'):
         update_tweet_info(session, tw.retweeted_status)
 
-    for m in entities.get('media', []):
-        update_media_info(session, m)
-
     tw_db = session.query(models.Tweet)\
         .options(load_only("id"))\
-        .filter_by(id=tw.id)\
+        .filter_by(id=int(tw.id_str))\
         .one_or_none()
     if tw_db is None:
-        tw_db = models.Tweet(id=tw.id)
+        tw_db = models.Tweet(id=int(tw.id_str))
         session.add(tw_db)
     if tw.coordinates is not None:
         tw_db.coordinates_longitude = tw.coordinates['coordinates'][0]
@@ -101,6 +98,10 @@ def update_tweet_info(session, tw):
         tw_db.withheld_scope = None
     session.commit()
 
+    if not hasattr(tw, 'retweeted_status'):
+        for m in entities.get('media', []):
+            update_media_info(session, tw, m)
+
 
 def update_user_info(session, u):
     if hasattr(u, 'status') and u.status is not None:
@@ -108,10 +109,10 @@ def update_user_info(session, u):
 
     u_db = session.query(models.User)\
         .options(load_only("id"))\
-        .filter_by(id=u.id)\
+        .filter_by(id=int(u.id_str))\
         .one_or_none()
     if u_db is None:
-        u_db = models.User(id=u.id)
+        u_db = models.User(id=int(u.id_str))
         session.add(u_db)
     u_db.created_at = u.created_at
     u_db.default_profile = u.default_profile
@@ -158,15 +159,16 @@ def update_user_info(session, u):
     session.commit()
 
 
-def update_media_info(session, m):
+def update_media_info(session, tw, m):
     m_db = session.query(models.Media)\
         .options(load_only("id"))\
-        .filter_by(id=m['id'])\
+        .filter_by(id=int(m['id_str']))\
         .one_or_none()
     if m_db is None:
-        m_db = models.Media(id=m['id'])
+        m_db = models.Media(id=int(m['id_str']))
         session.add(m_db)
 
+    m_db.tweet_id = int(tw.id_str)
     m_db.media_url = m['media_url']
     m_db.media_url_https = m['media_url_https']
     m_db.url = m['url']
