@@ -11,6 +11,7 @@ from sqlalchemy.orm import load_only
 import models
 from apis import api
 from databases import Session
+import logging_config
 
 
 logger = getLogger(__name__)
@@ -322,6 +323,7 @@ def download_all_media(session):
 
 
 def main_old():
+    logging_config.configure_logging()
     session = Session()
     for tw in api.statuses_lookup([
             817988458949984257,
@@ -353,9 +355,7 @@ def main_old():
 
 
 def main():
-    import logging
-    logging.basicConfig(level=logging.INFO)
-
+    logging_config.configure_logging()
     session = Session()
     count = 200
     while True:
