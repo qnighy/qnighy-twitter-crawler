@@ -1,6 +1,7 @@
-/twitter_config.py
 /db.sqlite
 /media
+/consumer-key.json
+/access-token.json
 
 # Created by https://www.gitignore.io/api/python
 
