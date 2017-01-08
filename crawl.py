@@ -306,9 +306,15 @@ def download_all_media(session):
                     m.media_url_https + ':large',
                     m.media_url_https,
                 ]
-                download_media(rsession, urls, m.local_media_name)
-                m.locally_available = True
-                session.commit()
+                try:
+                    download_media(rsession, urls, m.local_media_name)
+                    m.locally_available = True
+                    session.commit()
+                except Exception as e:
+                    session.rollback()
+                    logger.exception(
+                        "Exception during fetching media %s",
+                        m.media_url_https)
 
 
 def main_old():
