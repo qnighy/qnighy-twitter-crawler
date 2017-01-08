@@ -57,8 +57,10 @@ def update_tweet_info(session, tw):
     tw_db.in_reply_to_status_id = int_or_None(tw.in_reply_to_status_id_str)
     tw_db.in_reply_to_user_id = int_or_None(tw.in_reply_to_user_id_str)
     tw_db.lang = tw.lang
-    # TODO: tw.place
-    # tw_db.place_id = tw.place['id']
+    if hasattr(tw, 'place'):
+        tw_db.place = json.dumps(tw.place)
+    else:
+        tw_db.place = None
     tw_db.possibly_sensitive = getattr(tw, 'possibly_sensitive', None)
     tw_db.quoted_status_id = \
         int_or_None(getattr(tw, 'quoted_status_id_str', None))

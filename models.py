@@ -28,7 +28,7 @@ class Tweet(Base):
     in_reply_to_status_id = Column(BigInteger)
     in_reply_to_user_id = Column(BigInteger)
     lang = Column(String(20))
-    place_id = Column(Integer)
+    place = Column(Text)
     possibly_sensitive = Column(Boolean)
     quoted_status_id = Column(BigInteger)
     scopes = Column(Text)
