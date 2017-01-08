@@ -80,7 +80,17 @@ def update_tweet_info(session, tw):
     tw_db.in_reply_to_user_id = int_or_None(tw.in_reply_to_user_id_str)
     tw_db.lang = tw.lang
     if hasattr(tw, 'place') and tw.place is not None:
-        tw_db.place = json.dumps(tw.place)
+        place = {}
+        for k in ['attributes', 'country', 'code', 'country_code',
+                  'full_name', 'id', 'name', 'place_type', 'url']:
+            if hasattr(tw.place, k):
+                place[k] = getattr(tw.place, k)
+        place['bounding_box'] = {}
+        place['bounding_box']['coordinates'] = \
+            tw.place.bounding_box.coordinates
+        place['bounding_box']['type'] = \
+            tw.place.bounding_box.type
+        tw_db.place = json.dumps(place)
     else:
         tw_db.place = None
     tw_db.possibly_sensitive = getattr(tw, 'possibly_sensitive', None)
