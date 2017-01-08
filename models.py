@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from sqlalchemy import Column, Integer, BigInteger, String, DateTime, Boolean
-from sqlalchemy import Float
+from sqlalchemy import Float, Text, Unicode
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -18,8 +18,8 @@ class Tweet(Base):
     created_at = Column(DateTime, nullable=False)
     # Note: this is perspectival (i.e. it depends on the api user)
     current_user_retweet = Column(BigInteger)
-    entities = Column(String(4096), nullable=False)
-    extended_entities = Column(String(8192))
+    entities = Column(Text, nullable=False)
+    extended_entities = Column(Text)
     favorite_count = Column(Integer)
     # Note: this is perspectival (i.e. it depends on the api user)
     favorited = Column(Boolean)
@@ -31,18 +31,18 @@ class Tweet(Base):
     place_id = Column(Integer)
     possibly_sensitive = Column(Boolean)
     quoted_status_id = Column(BigInteger)
-    scopes = Column(String(1024))
+    scopes = Column(Text)
     retweet_count = Column(Integer, nullable=False)
     # Note: this is perspectival (i.e. it depends on the api user)
     retweeted = Column(Boolean, nullable=False)
     retweeted_status_id = Column(BigInteger)
-    source = Column(String(1024), nullable=False)
-    source_url = Column(String(1024), nullable=False)
-    text = Column(String(1024), nullable=False)
+    source = Column(Unicode(1024), nullable=False)
+    source_url = Column(Unicode(1024), nullable=False)
+    text = Column(Unicode(1024), nullable=False)
     truncated = Column(Boolean, nullable=False)
     user_id = Column(BigInteger, nullable=False)
     withheld_copyright = Column(Boolean)
-    withheld_in_countries = Column(String(1024))
+    withheld_in_countries = Column(Text)
     withheld_scope = Column(String(40))
 
 
@@ -54,9 +54,9 @@ class User(Base):
     created_at = Column(DateTime, nullable=False)
     default_profile = Column(Boolean, nullable=False)
     default_profile_image = Column(Boolean, nullable=False)
-    description = Column(String(1024))
+    description = Column(Unicode(1024))
     # TODO: entities
-    entities = Column(String(1024), nullable=False)
+    entities = Column(Text, nullable=False)
     favourites_count = Column(Integer, nullable=False)
     # Note: this is perspectival (i.e. it depends on the api user)
     follow_request_sent = Column(Boolean)
@@ -66,15 +66,15 @@ class User(Base):
     is_translator = Column(Boolean, nullable=False)
     lang = Column(String(20), nullable=False)
     listed_count = Column(Integer, nullable=False)
-    location = Column(String(256))
-    name = Column(String(256), nullable=False)
+    location = Column(Unicode(1024))
+    name = Column(Unicode(256), nullable=False)
     profile_background_color = Column(String(20), nullable=False)
-    profile_background_image_url = Column(String(1024))
-    profile_background_image_url_https = Column(String(1024))
+    profile_background_image_url = Column(Text)
+    profile_background_image_url_https = Column(Text)
     profile_background_tile = Column(Boolean, nullable=False)
-    profile_banner_url = Column(String(1024))
-    profile_image_url = Column(String(1024), nullable=False)
-    profile_image_url_https = Column(String(1024), nullable=False)
+    profile_banner_url = Column(Text)
+    profile_image_url = Column(Text, nullable=False)
+    profile_image_url_https = Column(Text, nullable=False)
     profile_link_color = Column(String(20), nullable=False)
     profile_sidebar_border_color = Column(String(20), nullable=False)
     profile_sidebar_fill_color = Column(String(20), nullable=False)
@@ -88,5 +88,5 @@ class User(Base):
     time_zone = Column(String(256))
     utc_offset = Column(Integer)
     verified = Column(Boolean, nullable=False)
-    withheld_in_countries = Column(String(1024))
+    withheld_in_countries = Column(Text)
     withheld_scope = Column(String(40))
