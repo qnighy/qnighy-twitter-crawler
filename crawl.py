@@ -17,6 +17,11 @@ def int_or_None(s):
 
 
 def update_tweet_info(session, tw):
+    entities = tw.entities.copy()
+    if hasattr(tw, 'extended_entities'):
+        for (k, v) in tw.extended_entities.items():
+            entities[k] = v
+
     update_user_info(session, tw.user)
     if hasattr(tw, 'quoted_status'):
         quoted_status = tw.quoted_status
@@ -25,6 +30,9 @@ def update_tweet_info(session, tw):
         update_tweet_info(session, quoted_status)
     if hasattr(tw, 'retweeted_status'):
         update_tweet_info(session, tw.retweeted_status)
+
+    for m in entities.get('media', []):
+        update_media_info(session, m)
 
     tw_db = session.query(models.Tweet)\
         .options(load_only("id"))\
@@ -150,9 +158,37 @@ def update_user_info(session, u):
     session.commit()
 
 
+def update_media_info(session, m):
+    m_db = session.query(models.Media)\
+        .options(load_only("id"))\
+        .filter_by(id=m['id'])\
+        .one_or_none()
+    if m_db is None:
+        m_db = models.Media(id=m['id'])
+        session.add(m_db)
+
+    m_db.media_url = m['media_url']
+    m_db.media_url_https = m['media_url_https']
+    m_db.url = m['url']
+    m_db.display_url = m['display_url']
+    m_db.expanded_url = m['expanded_url']
+    m_db.sizes = json.dumps(m['sizes'])
+    m_db.type = m['type']
+    m_db.indices_begin = m['indices'][0]
+    m_db.indices_end = m['indices'][1]
+    if 'video_info' in m:
+        m_db.video_info = json.dumps(m['video_info'])
+    else:
+        m_db.video_info = None
+    session.commit()
+
+
 def main():
     session = Session()
     for status_id in [
+            817722261033533440,
+            817358571079749632,
+            816828592449404928,
             817645036309356544,
             817666240042803201,
             817667861032243200,

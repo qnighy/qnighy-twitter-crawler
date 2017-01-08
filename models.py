@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import json
 from sqlalchemy import Column, Integer, BigInteger, String, DateTime, Boolean
 from sqlalchemy import Float, Text, Unicode
 from sqlalchemy.ext.declarative import declarative_base
@@ -44,6 +45,17 @@ class Tweet(Base):
     withheld_copyright = Column(Boolean)
     withheld_in_countries = Column(Text)
     withheld_scope = Column(String(40))
+
+    @property
+    def media(self):
+        if self.extended_entities is not None:
+            extended_entities = json.loads(self.extended_entities)
+            if 'media' in extended_entities:
+                return extended_entities['media']
+        entities = json.loads(self.entities)
+        if 'media' in entities:
+            return entities['media']
+        return []
 
 
 class User(Base):
@@ -90,3 +102,22 @@ class User(Base):
     verified = Column(Boolean, nullable=False)
     withheld_in_countries = Column(Text)
     withheld_scope = Column(String(40))
+
+
+class Media(Base):
+    __tablename__ = 'media'
+
+    id = Column(BigInteger, primary_key=True, autoincrement=False)
+    media_url = Column(Text, nullable=False)
+    media_url_https = Column(Text, nullable=False)
+    url = Column(Text, nullable=False)
+    display_url = Column(Text, nullable=False)
+    expanded_url = Column(Text, nullable=False)
+    sizes = Column(Text, nullable=False)
+    type = Column(String(40), nullable=False)
+    indices_begin = Column(Integer, nullable=False)
+    indices_end = Column(Integer, nullable=False)
+    video_info = Column(Text)
+
+    locally_available = Column(Boolean, nullable=False, default=False,
+                               index=True)
