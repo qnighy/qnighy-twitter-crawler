@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import time
 from contextlib import closing
+from logging import getLogger
 import json
 import requests
 import tweepy
@@ -9,6 +11,9 @@ from sqlalchemy.orm import load_only
 import models
 from apis import api
 from databases import Session
+
+
+logger = getLogger(__name__)
 
 
 def int_or_None(s):
@@ -20,7 +25,10 @@ def int_or_None(s):
 
 def download_media(rsession, media_url, local_media_file):
     import os
-    os.makedirs('media')
+    try:
+        os.makedirs('media')
+    except FileExistsError:
+        pass
     filename = os.path.join('media', local_media_file)
     with closing(rsession.get(media_url, stream=True))\
             as r:
@@ -270,9 +278,27 @@ def update_media_info(session, tw, m):
     session.commit()
 
 
-def main():
+def download_all_media(session):
+    with requests.Session() as rsession:
+        while True:
+            media = session.query(models.Media)\
+                .options(load_only('media_url_https', 'video_info'))\
+                .filter_by(locally_available=False)\
+                .limit(50)\
+                .all()
+            if len(media) == 0:
+                break
+            for m in media:
+                download_media(rsession, m.media_url_https + ':orig',
+                               m.local_media_name)
+                m.locally_available = True
+                session.commit()
+
+
+def main_old():
     session = Session()
-    for status_id in [
+    for tw in api.statuses_lookup([
+            817988458949984257,
             817887757091500033,
             817936565754134529,
             817722261033533440,
@@ -293,24 +319,39 @@ def main():
             815572784747159552,
             817467641128361985,
             786533768840433664,
-            ]:
-        tw = api.get_status(status_id)
+            ], include_entities=True):
         update_tweet_info(session, tw)
 
-    with requests.Session() as rsession:
-        while True:
-            media = session.query(models.Media)\
-                .options(load_only('media_url_https', 'video_info'))\
-                .filter_by(locally_available=False)\
-                .limit(50)\
-                .all()
-            if len(media) == 0:
-                break
-            for m in media:
-                download_media(rsession, m.media_url_https + ':orig',
-                               m.local_media_name)
-                m.locally_available = True
-                session.commit()
+    download_all_media(session)
+    return 0
+
+
+def main():
+    import logging
+    logging.basicConfig(level=logging.INFO)
+
+    session = Session()
+    count = 200
+    while True:
+        try:
+            tws = api.home_timeline(count=count)
+            logger.info(
+                "got %d tweets from home timeline (count=%d)",
+                len(tws), count)
+            for tw in tws:
+                try:
+                    update_tweet_info(session, tw)
+                except Exception as e:
+                    logging.exception(
+                        "Exception during recording tweet %d",
+                        tw.id)
+            logger.info("Recorded tweets to db")
+            download_all_media(session)
+            logger.info("Downloaded all media")
+        except Exception as e:
+            logging.exception("Exception during fetching home timeline")
+        time.sleep(70)
+
     return 0
 
 

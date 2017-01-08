@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import json
 from sqlalchemy import Column, Integer, BigInteger, String, DateTime, Boolean
 from sqlalchemy import Float, Text, Unicode, ForeignKey
 from sqlalchemy.orm import relationship
