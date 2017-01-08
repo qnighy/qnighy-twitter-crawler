@@ -23,19 +23,21 @@ def int_or_None(s):
         return int(s)
 
 
-def download_media(rsession, media_url, local_media_file):
+def download_media(rsession, media_urls, local_media_file):
     import os
     try:
         os.makedirs('media')
     except FileExistsError:
         pass
     filename = os.path.join('media', local_media_file)
-    with closing(rsession.get(media_url, stream=True))\
-            as r:
-        r.raise_for_status()
-        with open(filename, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=128):
-                f.write(chunk)
+    for (i, media_url) in enumerate(media_urls):
+        with closing(rsession.get(media_url, stream=True)) as r:
+            if i < len(media_urls)-1 and r.status_code == 404:
+                continue
+            r.raise_for_status()
+            with open(filename, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=128):
+                    f.write(chunk)
 
 
 def update_tweet_info(session, tw):
@@ -299,8 +301,12 @@ def download_all_media(session):
             if len(media) == 0:
                 break
             for m in media:
-                download_media(rsession, m.media_url_https + ':orig',
-                               m.local_media_name)
+                urls = [
+                    m.media_url_https + ':orig',
+                    m.media_url_https + ':large',
+                    m.media_url_https,
+                ]
+                download_media(rsession, urls, m.local_media_name)
                 m.locally_available = True
                 session.commit()
 
