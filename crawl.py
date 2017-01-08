@@ -3,21 +3,10 @@
 
 import json
 import tweepy
-from sqlalchemy import create_engine
-from sqlalchemy.orm import load_only, sessionmaker
+from sqlalchemy.orm import load_only
 import models
-import twitter_config
-
-
-auth = tweepy.OAuthHandler(twitter_config.consumer_key,
-                           twitter_config.consumer_secret)
-auth.set_access_token(twitter_config.access_token,
-                      twitter_config.access_secret)
-api = tweepy.API(auth)
-
-engine = create_engine('sqlite:///db.sqlite', echo=True)
-models.Base.metadata.create_all(engine)
-Session = sessionmaker(bind=engine)
+from apis import api
+from databases import Session
 
 
 def int_or_None(s):
