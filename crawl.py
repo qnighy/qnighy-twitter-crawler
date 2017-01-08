@@ -359,7 +359,7 @@ def main():
                     update_tweet_info(session, tw)
                 except Exception as e:
                     session.rollback()
-                    logging.exception(
+                    logger.exception(
                         "Exception during recording tweet %d",
                         tw.id)
             logger.info("Recorded tweets to db")
@@ -367,7 +367,7 @@ def main():
             logger.info("Downloaded all media")
         except Exception as e:
             session.rollback()
-            logging.exception("Exception during fetching home timeline")
+            logger.exception("Exception during fetching home timeline")
         time.sleep(70)
 
     return 0
