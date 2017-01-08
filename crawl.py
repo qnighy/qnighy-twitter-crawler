@@ -32,7 +32,11 @@ def download_media(rsession, media_urls, local_media_file):
     filename = os.path.join('media', local_media_file)
     for (i, media_url) in enumerate(media_urls):
         with closing(rsession.get(media_url, stream=True)) as r:
-            if i < len(media_urls)-1 and r.status_code == 404:
+            if r.status_code == 404:
+                if i == len(media_urls)-1:
+                    logger.warning(
+                        'Media not found and giving up fetching: %s',
+                        media_url)
                 continue
             r.raise_for_status()
             with open(filename, 'wb') as f:
