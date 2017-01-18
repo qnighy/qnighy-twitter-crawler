@@ -126,7 +126,7 @@ class Media(Base):
     video_info = Column(Text)
 
     locally_available = Column(Boolean, nullable=False, default=False)
-    locally_required = Column(Boolean, nullable=True)
+    locally_required = Column(Boolean, nullable=False, default=False)
 
     local_availability_index = \
         Index('ix_media_local_availability', locally_required,
