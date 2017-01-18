@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from sqlalchemy import Column, Integer, BigInteger, String, DateTime, Boolean
-from sqlalchemy import Float, Text, Unicode, ForeignKey
+from sqlalchemy import Float, Text, Unicode, ForeignKey, Index
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -125,8 +125,12 @@ class Media(Base):
     indices_end = Column(Integer, nullable=False)
     video_info = Column(Text)
 
-    locally_available = Column(Boolean, nullable=False, default=False,
-                               index=True)
+    locally_available = Column(Boolean, nullable=False, default=False)
+    locally_required = Column(Boolean, nullable=True)
+
+    local_availability_index = \
+        Index('ix_media_local_availability', locally_required,
+              locally_available)
 
     @property
     def local_media_name(self):

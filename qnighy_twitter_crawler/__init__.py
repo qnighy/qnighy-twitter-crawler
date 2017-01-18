@@ -291,6 +291,9 @@ def update_media_info(session, tw, m):
         m_db.video_info = json.dumps(m['video_info'])
     else:
         m_db.video_info = None
+
+    m_db.locally_available = False
+    m_db.locally_required = False
     session.commit()
 
 
@@ -299,6 +302,7 @@ def download_all_media(session):
         while True:
             media = session.query(models.Media)\
                 .options(load_only('media_url_https', 'video_info'))\
+                .filter_by(locally_required=True)\
                 .filter_by(locally_available=False)\
                 .limit(50)\
                 .all()
@@ -319,6 +323,21 @@ def download_all_media(session):
                     logger.exception(
                         "Exception during fetching media %s",
                         m.media_url_https)
+
+
+def update_local_requirements(session):
+    with requests.Session() as rsession:
+        while True:
+            media = session.query(models.Media)\
+                .options(load_only())\
+                .filter_by(locally_required=None)\
+                .limit(50)\
+                .all()
+            if len(media) == 0:
+                break
+            for m in media:
+                m.locally_required = m.locally_available
+                session.commit()
 
 
 def main_old():
