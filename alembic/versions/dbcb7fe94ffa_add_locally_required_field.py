@@ -17,13 +17,16 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column('media', sa.Column('locally_required', sa.Boolean(), nullable=True))
-    op.create_index('ix_media_local_availability', 'media', ['locally_required', 'locally_available'], unique=False)
+    op.add_column('media', sa.Column('locally_required', sa.Boolean(),
+                                     nullable=True))
+    op.create_index('ix_media_local_availability', 'media',
+                    ['locally_required', 'locally_available'], unique=False)
     op.drop_index('ix_media_locally_available', table_name='media')
 
 
 def downgrade():
-    op.create_index('ix_media_locally_available', 'media', ['locally_available'], unique=False)
+    op.create_index('ix_media_locally_available', 'media',
+                    ['locally_available'], unique=False)
     op.drop_index('ix_media_local_availability', table_name='media')
     with op.batch_alter_table('media', schema=None) as batch_op:
         batch_op.drop_column('locally_required')
