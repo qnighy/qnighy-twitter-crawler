@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import os
 import time
 from contextlib import closing
 from logging import getLogger
@@ -24,7 +25,6 @@ def int_or_None(s):
 
 
 def download_media(rsession, media_urls, local_media_file):
-    import os
     try:
         os.makedirs('media')
     except FileExistsError:
@@ -323,6 +323,27 @@ def download_all_media(session):
                     logger.exception(
                         "Exception during fetching media %s",
                         m.media_url_https)
+
+    while True:
+        media = session.query(models.Media)\
+            .options(load_only())\
+            .filter_by(locally_required=False)\
+            .filter_by(locally_available=True)\
+            .limit(50)\
+            .all()
+        if len(media) == 0:
+            break
+        for m in media:
+            try:
+                filename = os.path.join('media', m.local_media_name)
+                os.remove(filename)
+                m.locally_available = False
+                session.commit()
+            except Exception as e:
+                session.rollback()
+                logger.exception(
+                    "Exception during deleting media %s",
+                    m.local_media_name)
 
 
 def update_local_requirements():
