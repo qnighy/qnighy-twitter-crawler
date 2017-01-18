@@ -348,18 +348,17 @@ def download_all_media(session):
 
 def update_local_requirements():
     session = Session()
-    with requests.Session() as rsession:
-        while True:
-            media = session.query(models.Media)\
-                .options(load_only())\
-                .filter_by(locally_required=None)\
-                .limit(50)\
-                .all()
-            if len(media) == 0:
-                break
-            for m in media:
-                m.locally_required = m.locally_available
-                session.commit()
+    while True:
+        media = session.query(models.Media)\
+            .options(load_only())\
+            .filter_by(locally_required=None)\
+            .limit(50)\
+            .all()
+        if len(media) == 0:
+            break
+        for m in media:
+            m.locally_required = m.locally_available
+            session.commit()
 
 
 def main_old():
