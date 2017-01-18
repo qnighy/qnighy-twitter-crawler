@@ -25,4 +25,5 @@ def upgrade():
 def downgrade():
     op.create_index('ix_media_locally_available', 'media', ['locally_available'], unique=False)
     op.drop_index('ix_media_local_availability', table_name='media')
-    op.drop_column('media', 'locally_required')
+    with op.batch_alter_table('media', schema=None) as batch_op:
+        batch_op.drop_column('locally_required')
