@@ -325,7 +325,8 @@ def download_all_media(session):
                         m.media_url_https)
 
 
-def update_local_requirements(session):
+def update_local_requirements():
+    session = Session()
     with requests.Session() as rsession:
         while True:
             media = session.query(models.Media)\
