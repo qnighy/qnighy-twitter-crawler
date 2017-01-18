@@ -336,7 +336,10 @@ def download_all_media(session):
         for m in media:
             try:
                 filename = os.path.join('media', m.local_media_name)
-                os.remove(filename)
+                try:
+                    os.remove(filename)
+                except FileNotFoundError as e:
+                    pass
                 m.locally_available = False
                 session.commit()
             except Exception as e:
