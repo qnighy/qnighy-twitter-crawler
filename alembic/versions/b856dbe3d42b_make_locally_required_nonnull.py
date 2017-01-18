@@ -18,7 +18,6 @@ depends_on = None
 
 def upgrade():
     with op.batch_alter_table('media', schema=None) as batch_op:
-        print(batch_op)
         batch_op.alter_column('locally_required',
            existing_type=sa.BOOLEAN(),
            nullable=False)
